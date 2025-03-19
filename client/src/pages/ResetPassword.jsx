@@ -4,17 +4,23 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { AppContext } from "../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
+import BtnSubmit from "../components/BtnSubmit";
+import FormContainer from "../components/FormContainer";
+import { Eye, EyeClosed } from "lucide-react";
 
 const ResetPassword = () => {
-  const { baseUrl } = useContext(AppContext);
+  const { baseUrl, isLoggedIn, userData } = useContext(AppContext);
   axios.defaults.withCredentials = true;
 
   const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [isEmailSend, setIsEmailSend] = useState(false);
   const [otp, setOtp] = useState(0);
   const [isOtpSubmitted, setIsOtpSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const emailRef = useRef();
   const inputRefs = useRef([]);
@@ -45,6 +51,8 @@ const ResetPassword = () => {
 
   const onSubmitEmail = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+
     try {
       const { data } = await axios.post(`${baseUrl}/api/auth/send-reset-otp`, {
         email,
@@ -57,12 +65,16 @@ const ResetPassword = () => {
         ? toast.error(error.message)
         : toast.error(error.response.data.message);
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const onSubmitOtp = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
     try {
-      e.preventDefault();
       const otpArray = inputRefs.current.map((e) => e.value);
       setOtp(otpArray.join(""));
       setIsOtpSubmitted(true);
@@ -71,11 +83,15 @@ const ResetPassword = () => {
         ? toast.error(error.message)
         : toast.error(error.response.data.message);
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const onSubmitNewPassword = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+
     try {
       const { data } = await axios.post(`${baseUrl}/api/auth/reset-password`, {
         email,
@@ -90,6 +106,8 @@ const ResetPassword = () => {
         ? toast.error(error.message)
         : toast.error(error.response.data.message);
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -99,20 +117,17 @@ const ResetPassword = () => {
     if (isOtpSubmitted && isEmailSend) passwordRef.current.focus();
   }, [isEmailSend, isOtpSubmitted]);
 
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-200 to-purple-400">
-      <img
-        onClick={() => navigate("/")}
-        src={assets.logo}
-        alt="logo"
-        className="absolute left-5 sm:left-20 top-5 w-28 sm:w-32 cursor-pointer"
-      />
+  useEffect(() => {
+    isLoggedIn && userData && userData.isAccountVerified && navigate("/");
+  }, [isLoggedIn, userData, navigate]);
 
+  return (
+    <FormContainer>
       {/* enter email id */}
       {!isEmailSend && (
         <form
           onSubmit={onSubmitEmail}
-          className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm"
+          className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm relative"
         >
           <h1 className="text-white text-2xl font-semibold text-center mb-4">
             Reset Password
@@ -133,12 +148,12 @@ const ResetPassword = () => {
               ref={emailRef}
             />
           </div>
-          <button
-            type="submit"
-            className="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-indigo-900 text-white rounded-full mt-3 cursor-pointer"
-          >
-            Submit
-          </button>
+
+          <BtnSubmit
+            textBtn="Send OTP"
+            isLoading={isLoading}
+            classBtnContainer={"mt-3"}
+          />
         </form>
       )}
 
@@ -146,7 +161,7 @@ const ResetPassword = () => {
       {!isOtpSubmitted && isEmailSend && (
         <form
           onSubmit={onSubmitOtp}
-          className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm"
+          className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm relative"
         >
           <h1 className="text-white text-2xl font-semibold text-center mb-4">
             Reset Password OTP
@@ -172,12 +187,11 @@ const ResetPassword = () => {
               ))}
           </div>
 
-          <button
-            type="submit"
-            className="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-indigo-900 text-white rounded-full cursor-pointer"
-          >
-            Submit
-          </button>
+          <BtnSubmit
+            textBtn="Submit OTP"
+            isLoading={isLoading}
+            classBtnContainer={"mt-3"}
+          />
         </form>
       )}
 
@@ -185,7 +199,7 @@ const ResetPassword = () => {
       {isOtpSubmitted && isEmailSend && (
         <form
           onSubmit={onSubmitNewPassword}
-          className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm"
+          className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm relative"
         >
           <h1 className="text-white text-2xl font-semibold text-center mb-4">
             New Password
@@ -197,7 +211,7 @@ const ResetPassword = () => {
           <div className="mb-4 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
             <img src={assets.lock_icon} alt="mail icon" className="size-3" />
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password"
               className="bg-transparent outline-none text-white w-full"
               value={newPassword}
@@ -205,16 +219,23 @@ const ResetPassword = () => {
               required
               ref={passwordRef}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-indigo-500 cursor-pointer" // #b3c0ff
+            >
+              {showPassword ? <Eye size={20} /> : <EyeClosed size={20} />}
+            </button>
           </div>
-          <button
-            type="submit"
-            className="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-indigo-900 text-white rounded-full mt-3 cursor-pointer"
-          >
-            Submit
-          </button>
+
+          <BtnSubmit
+            textBtn="Reset Password"
+            isLoading={isLoading}
+            classBtnContainer={"mt-3"}
+          />
         </form>
       )}
-    </div>
+    </FormContainer>
   );
 };
 

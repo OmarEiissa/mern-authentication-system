@@ -31,7 +31,7 @@ const Header = () => {
         running in no time!
       </p>
 
-      <button className="border border-gray-500 rounded-full px-8 py-2 hover:bg-gray-100 transition-all cursor-pointer">
+      <button className="border border-gray-500 rounded-full px-8 py-2 hover:bg-gray-100 active:bg-gray-100 active:scale-95 transition duration-300 cursor-pointer">
         Get Started
       </button>
     </div>

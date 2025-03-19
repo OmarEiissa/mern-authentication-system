@@ -1,12 +1,15 @@
 import { useNavigate } from "react-router-dom";
-import { assets } from "../assets/assets";
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { AppContext } from "../context/AppContext";
+import BtnSubmit from "../components/BtnSubmit";
+import FormContainer from "../components/FormContainer";
 
 const EmailVerify = () => {
   const navigate = useNavigate();
+
+  const [isLoading, setIsLoading] = useState(false);
 
   axios.defaults.withCredentials = true;
 
@@ -39,6 +42,8 @@ const EmailVerify = () => {
   const onSubmitHandler = async (e) => {
     try {
       e.preventDefault();
+      setIsLoading(true);
+
       const otpArray = inputRefs.current.map((e) => e.value);
       const otp = otpArray.join("");
 
@@ -58,6 +63,8 @@ const EmailVerify = () => {
         ? toast.error(error.message)
         : toast.error(error.response.data.message);
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -67,20 +74,14 @@ const EmailVerify = () => {
 
   useEffect(() => {
     isLoggedIn && userData && userData.isAccountVerified && navigate("/");
+    !isLoggedIn && navigate("/login");
   }, [isLoggedIn, userData, navigate]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-200 to-purple-400">
-      <img
-        onClick={() => navigate("/")}
-        src={assets.logo}
-        alt="logo"
-        className="absolute left-5 sm:left-20 top-5 w-28 sm:w-32 cursor-pointer"
-      />
-
+    <FormContainer>
       <form
         onSubmit={onSubmitHandler}
-        className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm"
+        className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm relative"
       >
         <h1 className="text-white text-2xl font-semibold text-center mb-4">
           Email Verify OTP
@@ -106,14 +107,13 @@ const EmailVerify = () => {
             ))}
         </div>
 
-        <button
-          type="submit"
-          className="w-full py-3 bg-gradient-to-r from-indigo-500 to-indigo-900 text-white rounded-full"
-        >
-          Verify email
-        </button>
+        <BtnSubmit
+          textBtn={"Verify email"}
+          isLoading={isLoading}
+          classBtnContainer={"py-3"}
+        />
       </form>
-    </div>
+    </FormContainer>
   );
 };
 

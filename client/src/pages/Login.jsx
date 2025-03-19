@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
+import BtnSubmit from "../components/BtnSubmit";
+import FormContainer from "../components/FormContainer";
+import { Eye, EyeClosed } from "lucide-react";
 
 const inputs = [
   {
@@ -12,7 +15,7 @@ const inputs = [
     imgAlt: "user icon",
     type: "text",
     placeholder: "Full Name",
-    showInSignUp: false,
+    showInLogin: false,
   },
   {
     id: "email",
@@ -20,7 +23,7 @@ const inputs = [
     imgAlt: "email icon",
     type: "email",
     placeholder: "Email id",
-    showInSignUp: true,
+    showInLogin: true,
   },
   {
     id: "password",
@@ -28,16 +31,27 @@ const inputs = [
     imgAlt: "password icon",
     type: "password",
     placeholder: "Password",
-    showInSignUp: true,
+    showInLogin: true,
+  },
+  {
+    id: "confirmPassword",
+    imgSrc: assets.lock_icon,
+    imgAlt: "password icon",
+    type: "password",
+    placeholder: "Confirm Password",
+    showInLogin: false,
   },
 ];
 
 const Login = () => {
-  const [state, setState] = useState("Sign Up");
+  const [state, setState] = useState("Login");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
 
   const nameInputRef = useRef();
@@ -45,7 +59,8 @@ const Login = () => {
 
   const navigate = useNavigate();
 
-  const { baseUrl, setIsLoggedIn, getUserData } = useContext(AppContext);
+  const { baseUrl, setIsLoggedIn, getUserData, userData, isLoggedIn } =
+    useContext(AppContext);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -54,16 +69,18 @@ const Login = () => {
   const onSubmitHandler = async (e) => {
     try {
       e.preventDefault();
+      setIsLoading(true);
 
       axios.defaults.withCredentials = true;
 
-      const { name, email, password } = formData;
+      const { name, email, password, confirmPassword } = formData;
 
       if (state === "Sign Up") {
         const { data } = await axios.post(`${baseUrl}/api/auth/register`, {
           name: name.trim(),
           email: email.trim(),
           password: password.trim(),
+          confirmPassword: confirmPassword.trim(),
         });
 
         if (data.success) {
@@ -95,6 +112,8 @@ const Login = () => {
         ? toast.error(error.message)
         : toast.error(error.response.data.message);
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -106,16 +125,13 @@ const Login = () => {
     }
   }, [state]);
 
-  return (
-    <div className="flex items-center justify-center min-h-screen px-6 sm:px-0 bg-gradient-to-br from-blue-200 to-purple-400">
-      <img
-        onClick={() => navigate("/")}
-        src={assets.logo}
-        alt="logo"
-        className="absolute left-5 sm:left-20 top-5 w-28 sm:w-32 cursor-pointer"
-      />
+  useEffect(() => {
+    isLoggedIn && userData && userData.isAccountVerified && navigate("/");
+  }, [isLoggedIn, userData, navigate]);
 
-      <div className="bg-slate-900 p-10 rounded-lg shadow-lg w-full sm:w-96 text-indigo-300 text-sm">
+  return (
+    <FormContainer>
+      <div className="bg-slate-900 p-10 rounded-lg shadow-lg w-full sm:w-96 text-indigo-300 text-sm relative">
         <h2 className="text-3xl font-semibold text-white text-center mb-3">
           {state === "Sign Up" ? "Create Account" : "Login"}
         </h2>
@@ -128,16 +144,22 @@ const Login = () => {
 
         <form onSubmit={onSubmitHandler}>
           {inputs
-            .filter((input) => state === "Sign Up" || input.showInSignUp)
+            .filter((input) => state === "Sign Up" || input.showInLogin)
             .map((input, index) => (
               <div
                 key={index}
-                className="mb-4 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]"
+                className="mb-4 flex items-center justify-between gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]"
               >
                 <img src={input.imgSrc} alt={input.imgAlt} />
                 <input
                   id={input.id}
-                  type={input.type}
+                  type={
+                    input.type === "password"
+                      ? showPassword
+                        ? "text"
+                        : "password"
+                      : "text"
+                  }
                   placeholder={input.placeholder}
                   required
                   value={formData[input.id]}
@@ -151,6 +173,15 @@ const Login = () => {
                       : null
                   }
                 />
+                {input.id === "password" && (
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-indigo-500 cursor-pointer" // #b3c0ff
+                  >
+                    {showPassword ? <Eye size={20} /> : <EyeClosed size={20} />}
+                  </button>
+                )}
               </div>
             ))}
 
@@ -163,12 +194,7 @@ const Login = () => {
             </p>
           )}
 
-          <button
-            typeof="submit"
-            className="w-full py-2.5 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-900 text-white font-medium cursor-pointer"
-          >
-            {state}
-          </button>
+          <BtnSubmit textBtn={state} isLoading={isLoading} />
         </form>
 
         <p className="text-gray-400 text-center text-xs mt-4">
@@ -183,7 +209,7 @@ const Login = () => {
           </span>
         </p>
       </div>
-    </div>
+    </FormContainer>
   );
 };
 

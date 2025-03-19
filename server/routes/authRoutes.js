@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  deleteAccount,
   isAuthenticated,
   login,
   logout,
@@ -22,5 +23,6 @@ authRouter.post("/verify-account", userAuth, verifyEmail);
 authRouter.get("/is-auth", userAuth, isAuthenticated);
 authRouter.post("/send-reset-otp", sendResetOtp);
 authRouter.post("/reset-password", resetPassword);
+authRouter.delete("/delete-account", userAuth, deleteAccount);
 
 export default authRouter;

@@ -14,7 +14,7 @@ const userAuth = async (req, res, next) => {
     const tokenDecoded = jwt.verify(token, process.env.JWT_SECRET);
 
     if (tokenDecoded.id) {
-      req.body.userId = tokenDecoded.id;
+      req.user = { id: tokenDecoded.id };
     } else {
       return res.status(401).json({
         success: false,
@@ -24,9 +24,14 @@ const userAuth = async (req, res, next) => {
 
     next();
   } catch (error) {
+    console.log(error);
+
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message:
+        process.env.NODE_ENV === "production"
+          ? "Internal Server Error"
+          : error.message,
     });
   }
 };

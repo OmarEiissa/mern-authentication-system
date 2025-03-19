@@ -24,4 +24,15 @@ export const validateRegister = [
     .matches(/[@$!%*?&#]/)
     .withMessage("Include at least one special character.")
     .escape(),
+
+  check("confirmPassword")
+    .trim()
+    .notEmpty()
+    .withMessage("Confirm Password is required.")
+    .custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error("Passwords do not match.");
+      }
+      return true;
+    }),
 ];
