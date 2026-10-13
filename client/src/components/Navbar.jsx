@@ -69,14 +69,14 @@ const Navbar = () => {
                 closeToast();
                 deleteAccount();
               }}
-              className="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700"
+              className="rounded bg-red-600 px-2.5 py-1 text-white hover:bg-red-700"
             >
               Delete
             </button>
             <button
               type="button"
               onClick={closeToast}
-              className="rounded bg-gray-200 px-3 py-1 text-gray-800 hover:bg-gray-300"
+              className="rounded bg-gray-200 px-2.5 py-1 text-gray-800 hover:bg-gray-300"
             >
               Cancel
             </button>
