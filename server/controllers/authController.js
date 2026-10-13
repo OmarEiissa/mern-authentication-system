@@ -98,7 +98,7 @@ export const login = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: "Email or password is incorrect",
       });
     }
 
@@ -313,7 +313,7 @@ export const sendResetOtp = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: "If the email is registered, an OTP will be sent to it for password reset",
       });
     }
 

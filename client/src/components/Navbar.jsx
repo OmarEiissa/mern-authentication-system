@@ -54,7 +54,40 @@ const Navbar = () => {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
+    toast.warning(
+      ({ closeToast }) => (
+        <div dir="rtl" className="text-sm">
+          <p className="mb-3">
+            Are you sure you want to delete your account? This action cannot be
+            undone.
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                closeToast();
+                deleteAccount();
+              }}
+              className="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700"
+            >
+              Delete
+            </button>
+            <button
+              type="button"
+              onClick={closeToast}
+              className="rounded bg-gray-200 px-3 py-1 text-gray-800 hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      { autoClose: false, closeOnClick: false },
+    );
+  };
+
+  const deleteAccount = async () => {
     try {
       axios.defaults.withCredentials = true;
       const { data } = await axios.delete(`${baseUrl}/api/auth/delete-account`);
